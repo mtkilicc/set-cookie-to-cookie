@@ -1,0 +1,38 @@
+plugins {
+    id "java"
+}
+
+group = "setcookietocookie"
+version = "1.1.0"
+
+repositories { mavenCentral() }
+
+dependencies {
+    compileOnly "net.portswigger.burp.extensions:montoya-api:2026.7"
+    testImplementation "net.portswigger.burp.extensions:montoya-api:2026.7"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 17
+}
+
+jar {
+    archiveFileName = "set-cookie-to-cookie.jar"
+    destinationDirectory = file("dist")
+}
+
+test {
+    enabled = false
+}
+
+def cookieChecks = tasks.register("cookieChecks", JavaExec) {
+    group = "verification"
+    dependsOn tasks.named("testClasses"), tasks.named("jar")
+    classpath = files(tasks.named("jar").flatMap { it.archiveFile }, sourceSets.test.output, configurations.testRuntimeClasspath)
+    mainClass = "setcookietocookie.CookieExtensionTest"
+    enableAssertions = true
+    systemProperty "java.awt.headless", "true"
+}
+
+check { dependsOn cookieChecks }
